@@ -9,5 +9,13 @@ namespace ComplaintLoggingSystem.Services
     public interface IComplaintDetailsSystem
     {
         Task<List<ComplaintDetailsData>> GetComplaintDetails(string emailId);
+
+        Task<ComplaintCompleteDetailData> GetComplaintDetail(Guid id);
+
+        Task CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData);
+
+        Task UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData);
+
+        Task DeleteComplaintDetail(Guid complaintId);
     }
 }

@@ -13,6 +13,12 @@ namespace CourseLibrary.API.Profiles
         public ComplaintDetailsProfile()
         {
             CreateMap<ComplaintDetailsData, ComplaintDetailsDomain>();
+            CreateMap<ComplaintCompleteDetailData, ComplaintCompleteDetailDomain>();
+            CreateMap<ComplaintDetailForCreationDomain, ComplaintDetailForCreationData>()
+                .ForMember
+                (dest=>dest.EmailAddress,
+                opt=>opt.MapFrom(src=>"abc@gmail.com"));
+            CreateMap<ComplaintDetailForUpdationDomain, ComplaintDetailForUpdationData>();
         }
     }
 }

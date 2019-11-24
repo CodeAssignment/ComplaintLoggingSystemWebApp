@@ -8,6 +8,21 @@ namespace ComplaintLoggingSystem.Services
 {
     public class MockComplaintDetailsSystem : IComplaintDetailsSystem
     {
+        public Task CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteComplaintDetail(Guid complaintId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ComplaintCompleteDetailData> GetComplaintDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<List<ComplaintDetailsData>> GetComplaintDetails(string emailId)
         {
             var complaintDetails = new List<ComplaintDetailsData>
@@ -30,8 +45,13 @@ namespace ComplaintLoggingSystem.Services
                     Title=""
                 }
             };
-            
+
             return complaintDetails;
+        }
+      
+        public Task UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData)
+        {
+            throw new NotImplementedException();
         }
     }
 }

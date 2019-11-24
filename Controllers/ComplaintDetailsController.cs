@@ -25,14 +25,15 @@ namespace ComplaintLoggingSystem.Controllers
         // GET: ComplaintDetails
         public ActionResult Index()
         {
-            var complaintDetails = _complaintDetailsSystem.GetComplaintDetails(emailId:"akshayslodha@gmail.com").Result;
+            var complaintDetails = _complaintDetailsSystem.GetComplaintDetails(emailId: "akshayslodha@gmail.com").Result;
             return View(_mapper.Map<List<ComplaintDetailsDomain>>(complaintDetails));
         }
 
         // GET: ComplaintDetails/Details/5
-        public ActionResult Details(int id)
+        public ActionResult Details(Guid id)
         {
-            return View();
+            var complaintDetails = _complaintDetailsSystem.GetComplaintDetail(id).Result;
+            return View(_mapper.Map<ComplaintCompleteDetailDomain>(complaintDetails));
         }
 
         // GET: ComplaintDetails/Create
@@ -44,18 +45,22 @@ namespace ComplaintLoggingSystem.Controllers
         // POST: ComplaintDetails/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(ComplaintDetailForCreationDomain collection)
         {
             try
             {
-                // TODO: Add insert logic here
-
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    var complaintDetailData = _mapper.Map<DataModels.ComplaintDetailForCreationData>(collection);
+                    _complaintDetailsSystem.CreateComplaintDetail(complaintDetailData);
+                    return RedirectToAction(nameof(Index));
+                }
             }
             catch
             {
-                return View();
+                
             }
+            return View();
         }
 
         // GET: ComplaintDetails/Edit/5
@@ -67,35 +72,41 @@ namespace ComplaintLoggingSystem.Controllers
         // POST: ComplaintDetails/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(Guid id, ComplaintDetailForUpdationDomain collection)
         {
             try
             {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    var complaintDetailData = _mapper.Map<DataModels.ComplaintDetailForUpdationData>(collection);
+                    _complaintDetailsSystem.UpdateComplaintDetail(id,complaintDetailData);
+                    return RedirectToAction(nameof(Index));
+                }
             }
             catch
             {
-                return View();
+                
             }
-        }
-
-        // GET: ComplaintDetails/Delete/5
-        public ActionResult Delete(int id)
-        {
             return View();
         }
 
+        [HttpGet]
+        // GET: ComplaintDetails/Delete/5
+        public ActionResult Delete(Guid id)
+        {
+
+            var complaintDetails = _complaintDetailsSystem.GetComplaintDetail(id).Result;
+            return View(_mapper.Map<ComplaintCompleteDetailDomain>(complaintDetails));
+        }
+            
         // POST: ComplaintDetails/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(Guid id, ComplaintCompleteDetailDomain complaintDetail)
         {
             try
             {
-                // TODO: Add delete logic here
-
+                _complaintDetailsSystem.DeleteComplaintDetail(id);
                 return RedirectToAction(nameof(Index));
             }
             catch
