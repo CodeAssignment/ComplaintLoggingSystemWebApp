@@ -6,11 +6,13 @@ using AutoMapper;
 using ComplaintLoggingSystem.Helpers;
 using ComplaintLoggingSystem.Models;
 using ComplaintLoggingSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ComplaintLoggingSystem.Controllers
 {
+    [Authorize]
     public class ComplaintDetailsController : Controller
     {
         private readonly IMapper _mapper;
@@ -26,7 +28,7 @@ namespace ComplaintLoggingSystem.Controllers
         // GET: ComplaintDetails
         public ActionResult Index()
         {
-            var complaintDetails = _complaintDetailsSystem.GetComplaintDetails(emailId: "abc@gmail.com").Result;
+            var complaintDetails = _complaintDetailsSystem.GetComplaintDetails(emailId: UserToolBox.GetEmailId()).Result;
             return View(_mapper.Map<List<ComplaintDetailsDomain>>(complaintDetails));
         }
 
