@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ComplaintLoggingSystem.Helpers;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -138,7 +139,8 @@ namespace ComplaintLoggingSystem.Services
 
         private static async Task<T> ParseResponse<T>(HttpResponseMessage response)
         {
-            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NoContent || response.StatusCode == System.Net.HttpStatusCode.Created)
             {
                 return default(T);
             }

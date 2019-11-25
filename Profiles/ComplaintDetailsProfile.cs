@@ -19,6 +19,7 @@ namespace CourseLibrary.API.Profiles
                 (dest=>dest.EmailAddress,
                 opt=>opt.MapFrom(src=>"abc@gmail.com"));
             CreateMap<ComplaintDetailForUpdationDomain, ComplaintDetailForUpdationData>();
+            CreateMap<ComplaintCompleteDetailData, ComplaintDetailForUpdationDomain>();
         }
     }
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ComplaintLoggingSystem.DataModels;
+using ComplaintLoggingSystem.Helpers;
+using ComplaintLoggingSystem.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace ComplaintLoggingSystem.Services
@@ -17,17 +19,33 @@ namespace ComplaintLoggingSystem.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData)
+        public async Task<string> CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData)
         {
-            var complaintDetailsUrl = $"complaintDetails";
-            await PostData<string>(complaintDetailsUrl,complaintDetailForCreationData);
-            
+            try
+            {
+                var complaintDetailsUrl = $"complaintDetails";
+                await PostData<string>(complaintDetailsUrl, complaintDetailForCreationData);
+                return Response.Success.ToString();
+            }
+            catch
+            {
+                return Response.Failure.ToString();
+            }
         }
 
-        public async Task DeleteComplaintDetail(Guid complaintId)
+        public async Task<string> DeleteComplaintDetail(Guid complaintId)
         {
-            var complaintDetailsUrl = $"complaintDetails/{complaintId}";
-            await DeleteData<string>(complaintDetailsUrl);
+            try
+            {
+                var complaintDetailsUrl = $"complaintDetails/{complaintId}";
+                await DeleteData<string>(complaintDetailsUrl);
+                return Response.Success.ToString();
+            }
+            catch
+            {
+                return Response.Failure.ToString();
+            }
+            
         }
 
         public async Task<ComplaintCompleteDetailData> GetComplaintDetail(Guid id)
@@ -44,12 +62,20 @@ namespace ComplaintLoggingSystem.Services
             return response;
         }
 
-        
 
-        public async Task UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData)
+
+        public async Task<string> UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData)
         {
-            var complaintDetailsUrl = $"complaintDetails/{complaintId}";
-            await PutData<string>(complaintDetailsUrl, complaintDetailForCreationData);
+            try
+            {
+                var complaintDetailsUrl = $"complaintDetails/{complaintId}";
+                await PutData<string>(complaintDetailsUrl, complaintDetailForCreationData);
+                return Response.Success.ToString();
+            }
+            catch
+            {
+                return Response.Failure.ToString();
+            }
         }
     }
 }

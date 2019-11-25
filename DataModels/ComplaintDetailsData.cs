@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ComplaintLoggingSystem.DataModels
 {
-    public class ComplaintDetailsData
+    public class ComplaintDetailsData : ResponseMessageData
     {
         public Guid Id { get; set; }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using ComplaintLoggingSystem.Helpers;
 using ComplaintLoggingSystem.Models;
 using ComplaintLoggingSystem.Services;
 using Microsoft.AspNetCore.Http;
@@ -25,7 +26,7 @@ namespace ComplaintLoggingSystem.Controllers
         // GET: ComplaintDetails
         public ActionResult Index()
         {
-            var complaintDetails = _complaintDetailsSystem.GetComplaintDetails(emailId: "akshayslodha@gmail.com").Result;
+            var complaintDetails = _complaintDetailsSystem.GetComplaintDetails(emailId: "abc@gmail.com").Result;
             return View(_mapper.Map<List<ComplaintDetailsDomain>>(complaintDetails));
         }
 
@@ -47,26 +48,32 @@ namespace ComplaintLoggingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(ComplaintDetailForCreationDomain collection)
         {
-            try
+            string response = string.Empty;
+
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
-                {
-                    var complaintDetailData = _mapper.Map<DataModels.ComplaintDetailForCreationData>(collection);
-                    _complaintDetailsSystem.CreateComplaintDetail(complaintDetailData);
-                    return RedirectToAction(nameof(Index));
-                }
+                var complaintDetailData = _mapper.Map<DataModels.ComplaintDetailForCreationData>(collection);
+                response = _complaintDetailsSystem.CreateComplaintDetail(complaintDetailData).Result;
+
             }
-            catch
-            {
-                
-            }
+
+            return NotifyUser(response);
+        }
+
+        private ActionResult NotifyUser(string response)
+        {
+            if (response == Models.Response.Success.ToString())
+                return RedirectToAction(nameof(Index));
+            else
+                this.ModelState.AddModelError(string.Empty, UserConstants.ErrorMessage);
             return View();
         }
 
         // GET: ComplaintDetails/Edit/5
-        public ActionResult Edit(int id)
+        public ActionResult Edit(Guid id)
         {
-            return View();
+            var complaintDetails = _complaintDetailsSystem.GetComplaintDetail(id).Result;
+            return View(_mapper.Map<ComplaintDetailForUpdationDomain>(complaintDetails));
         }
 
         // POST: ComplaintDetails/Edit/5
@@ -74,20 +81,15 @@ namespace ComplaintLoggingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Guid id, ComplaintDetailForUpdationDomain collection)
         {
-            try
+            string response = string.Empty;
+
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
-                {
-                    var complaintDetailData = _mapper.Map<DataModels.ComplaintDetailForUpdationData>(collection);
-                    _complaintDetailsSystem.UpdateComplaintDetail(id,complaintDetailData);
-                    return RedirectToAction(nameof(Index));
-                }
+                var complaintDetailData = _mapper.Map<DataModels.ComplaintDetailForUpdationData>(collection);
+                response = _complaintDetailsSystem.UpdateComplaintDetail(id, complaintDetailData).Result;
             }
-            catch
-            {
-                
-            }
-            return View();
+
+            return NotifyUser(response);
         }
 
         [HttpGet]
@@ -98,21 +100,16 @@ namespace ComplaintLoggingSystem.Controllers
             var complaintDetails = _complaintDetailsSystem.GetComplaintDetail(id).Result;
             return View(_mapper.Map<ComplaintCompleteDetailDomain>(complaintDetails));
         }
-            
+
         // POST: ComplaintDetails/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(Guid id, ComplaintCompleteDetailDomain complaintDetail)
         {
-            try
-            {
-                _complaintDetailsSystem.DeleteComplaintDetail(id);
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            string response = string.Empty;
+            response = _complaintDetailsSystem.DeleteComplaintDetail(id).Result;
+
+            return NotifyUser(response);
         }
     }
 }

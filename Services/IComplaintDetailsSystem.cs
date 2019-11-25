@@ -12,10 +12,10 @@ namespace ComplaintLoggingSystem.Services
 
         Task<ComplaintCompleteDetailData> GetComplaintDetail(Guid id);
 
-        Task CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData);
+        Task<string> CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData);
 
-        Task UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData);
+        Task<string> UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData);
 
-        Task DeleteComplaintDetail(Guid complaintId);
+        Task<string> DeleteComplaintDetail(Guid complaintId);
     }
 }

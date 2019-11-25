@@ -8,12 +8,12 @@ namespace ComplaintLoggingSystem.Services
 {
     public class MockComplaintDetailsSystem : IComplaintDetailsSystem
     {
-        public Task CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData)
+        public Task<string> CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData)
         {
             throw new NotImplementedException();
         }
 
-        public Task DeleteComplaintDetail(Guid complaintId)
+        public Task<string> DeleteComplaintDetail(Guid complaintId)
         {
             throw new NotImplementedException();
         }
@@ -49,7 +49,7 @@ namespace ComplaintLoggingSystem.Services
             return complaintDetails;
         }
       
-        public Task UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData)
+        public Task<string> UpdateComplaintDetail(Guid complaintId, ComplaintDetailForUpdationData complaintDetailForCreationData)
         {
             throw new NotImplementedException();
         }

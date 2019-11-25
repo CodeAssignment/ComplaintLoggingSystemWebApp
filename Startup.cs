@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using ComplaintLoggingSystem.Helpers;
 
 namespace ComplaintLoggingSystem
 {
