@@ -1,12 +1,13 @@
 ﻿using ComplaintLoggingSystem.Helpers;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Web;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ComplaintLoggingSystem.Services
@@ -15,20 +16,24 @@ namespace ComplaintLoggingSystem.Services
     {
         IHttpClientFactory _httpClientFactory;
         HttpClient _httpClient;
-        IHttpContextAccessor _httpContextAccessor;
+        private readonly ITokenAcquisition _tokenAcquisition;
+        private readonly string _TodoListScope = string.Empty;
+        private readonly string _TodoListBaseAddress = string.Empty;
 
-        public ServiceAgent(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, string clientName = "")
+        public ServiceAgent(IHttpClientFactory httpClientFactory, ITokenAcquisition tokenAcquisition, IConfiguration configuration, string clientName = "")
         {
             _httpClientFactory = httpClientFactory;
-            _httpContextAccessor = httpContextAccessor;
+            this._tokenAcquisition = tokenAcquisition;
+            this._TodoListScope = configuration["TodoList:TodoListScope"];
+            this._TodoListBaseAddress = configuration["TodoList:TodoListBaseAddress"];
             switch (clientName)
             {
                 case UserConstants.CORELIBRARYHTTPCLIENT:
-                    _httpClient = GetHttpClient();
+                    this._httpClient = GetHttpClient();
                     break;
 
                 default:
-                    _httpClient = GetHttpClient();
+                    this._httpClient = GetHttpClient();
                     break;
 
             }
@@ -37,6 +42,8 @@ namespace ComplaintLoggingSystem.Services
 
         public async Task<T> GetData<T>(string Url)
         {
+            await PrepareAuthenticatedClient();
+
             if (Url.Contains("?"))
             {
                 if (Url.Contains("&"))
@@ -53,16 +60,10 @@ namespace ComplaintLoggingSystem.Services
             return await ParseResponse<T>(response);
         }
 
-        public async Task<T> GetDataWithContent<T>(string Url)
-        {
-            HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Get, Url);
-            httpRequest.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-            var response = await _httpClient.SendAsync(httpRequest);
-            return await ParseResponse<T>(response);
-        }
-
         public async Task<T> PostData<T>(string Url, object postObject)
         {
+            await PrepareAuthenticatedClient();
+
             var postJsonObject = JsonConvert.SerializeObject(postObject);
             var buffer = System.Text.Encoding.UTF8.GetBytes(postJsonObject);
             var byteContent = new ByteArrayContent(buffer);
@@ -75,6 +76,8 @@ namespace ComplaintLoggingSystem.Services
 
         public async Task<T> PutData<T>(string Url, object postObject)
         {
+            await PrepareAuthenticatedClient();
+
             var postJsonObject = JsonConvert.SerializeObject(postObject);
             var buffer = System.Text.Encoding.UTF8.GetBytes(postJsonObject);
             var byteContent = new ByteArrayContent(buffer);
@@ -89,51 +92,9 @@ namespace ComplaintLoggingSystem.Services
 
         public async Task<T> DeleteData<T>(string Url)
         {
+            await PrepareAuthenticatedClient();
+
             var response = await _httpClient.DeleteAsync(Url);
-            return await ParseResponse<T>(response);
-        }
-
-        public async Task<Stream> GetStreamData<T>(string Url)
-        {
-            var response = await _httpClient.GetAsync(Url);
-            return await ParseStreamResponse<Stream>(response);
-        }
-
-        public async Task<Stream> PostStreamData<T>(string Url, object postObject)
-        {
-            var postJsonObject = JsonConvert.SerializeObject(postObject);
-            var buffer = System.Text.Encoding.UTF8.GetBytes(postJsonObject);
-            var byteContent = new ByteArrayContent(buffer);
-            byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            var response = await _httpClient.PostAsync(Url, byteContent);
-
-            return await ParseStreamResponse<Stream>(response);
-
-        }
-
-        private static async Task<Stream> ParseStreamResponse<T>(HttpResponseMessage response)
-        {
-            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
-            {
-                return default(Stream);
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                var stringResult = await response.Content.ReadAsStreamAsync();
-                return stringResult;
-            }
-            else
-            {
-                var stringResult = await response.Content.ReadAsStringAsync();
-                throw new Exception();
-            }
-        }
-
-        public async Task<T> DeleteDataWithObj<T>(string Url, object delObject)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Delete, Url);
-            request.Content = new StringContent(JsonConvert.SerializeObject(delObject), Encoding.UTF8, "application/json");
-            var response = await _httpClient.SendAsync(request);
             return await ParseResponse<T>(response);
         }
 
@@ -182,6 +143,12 @@ namespace ComplaintLoggingSystem.Services
             return client;
         }
 
-       
+        private async Task PrepareAuthenticatedClient()
+        {
+            var accessToken = await this._tokenAcquisition.GetAccessTokenOnBehalfOfUserAsync(new[] { this._TodoListScope });
+            Debug.WriteLine($"access token-{accessToken}");
+            this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            this._httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
     }
 }

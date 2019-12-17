@@ -16,7 +16,7 @@ namespace ComplaintLoggingSystem.Helpers
            
 
             var _httpContext = AppContext.Current;
-            var emailId = _httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+            var emailId = _httpContext.User.Identity.Name;
             
 
             return emailId;

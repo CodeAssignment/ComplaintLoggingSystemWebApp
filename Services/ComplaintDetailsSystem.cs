@@ -1,22 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using ComplaintLoggingSystem.DataModels;
 using ComplaintLoggingSystem.Helpers;
 using ComplaintLoggingSystem.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
 
 namespace ComplaintLoggingSystem.Services
 {
+
+    public static class TodoListServiceExtensions
+    {
+        public static void AddTodoListService(this IServiceCollection services, IConfiguration configuration)
+        {
+            // https://docs.microsoft.com/en-us/dotnet/standard/microservices-architecture/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests
+            services.AddHttpClient<IComplaintDetailsSystem, ComplaintDetailsSystem>();
+        }
+    }
+
     public class ComplaintDetailsSystem : ServiceAgent, IComplaintDetailsSystem
     {
 
-        IHttpClientFactory _httpClientFactory;
-        public ComplaintDetailsSystem(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(httpClientFactory, httpContextAccessor, UserConstants.CORELIBRARYHTTPCLIENT)
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly HttpClient _httpClient;
+        private readonly string _TodoListScope = string.Empty;
+        private readonly string _TodoListBaseAddress = string.Empty;
+        private readonly ITokenAcquisition _tokenAcquisition;
+
+        public ComplaintDetailsSystem(ITokenAcquisition tokenAcquisition, IConfiguration configuration, IHttpContextAccessor contextAccessor, IHttpClientFactory httpClientFactory) : base(httpClientFactory, tokenAcquisition, configuration, UserConstants.CORELIBRARYHTTPCLIENT)
         {
-            _httpClientFactory = httpClientFactory;
+           // this._httpClient = httpClient;
+            this._tokenAcquisition = tokenAcquisition;
+            this._contextAccessor = contextAccessor;
+            this._TodoListScope = configuration["TodoList:TodoListScope"];
+            this._TodoListBaseAddress = configuration["TodoList:TodoListBaseAddress"];
         }
 
         public async Task<string> CreateComplaintDetail(ComplaintDetailForCreationData complaintDetailForCreationData)
@@ -57,10 +81,12 @@ namespace ComplaintLoggingSystem.Services
 
         public async Task<List<ComplaintDetailsData>> GetComplaintDetails(string emailId)
         {
+            
             var complaintDetailsUrl = $"complaintDetails/{emailId}";
             var response = await GetData<List<ComplaintDetailsData>>(complaintDetailsUrl);
             return response;
         }
+
 
 
 
@@ -77,5 +103,7 @@ namespace ComplaintLoggingSystem.Services
                 return Response.Failure.ToString();
             }
         }
+
+       
     }
 }

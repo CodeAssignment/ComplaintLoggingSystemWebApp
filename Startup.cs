@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using AppContext = ComplaintLoggingSystem.Helpers.AppContext;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
+
 
 namespace ComplaintLoggingSystem
 {
@@ -31,21 +34,29 @@ namespace ComplaintLoggingSystem
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDistributedMemoryCache();
 
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
+            }); 
+            
+            services.AddOptions();
 
-            services.AddAuthentication(sharedOptions =>
-            {
-                sharedOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                sharedOptions.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-            })
-            .AddAzureAd(options => Configuration.Bind("AzureAd", options))
-            .AddCookie();
+
+            //services.AddAuthentication(sharedOptions =>
+            //{
+            //    sharedOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    sharedOptions.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            //})
+            //.AddAzureAd(options => Configuration.Bind("AzureAd", options))
+            //.AddCookie();
+
+            services.AddMicrosoftIdentityPlatformAuthentication(Configuration)
+            .AddMsal(Configuration,new string[] { Configuration["TodoList:TodoListScope"] })
+            .AddInMemoryTokenCaches();
 
             //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
             //    .AddAzureAD(options => Configuration.Bind("AzureAd", options));
@@ -60,14 +71,12 @@ namespace ComplaintLoggingSystem
 
             //.SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
+            // Add APIs
+            services.AddTodoListService(Configuration);
+
             services.AddHttpClient();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
+          
 
             services.AddHttpClient(UserConstants.CORELIBRARYHTTPCLIENT, client =>
             {
@@ -77,11 +86,19 @@ namespace ComplaintLoggingSystem
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddTransient<IComplaintDetailsSystem, ComplaintDetailsSystem>();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            //services.AddMvc();
+            services.AddControllersWithViews(options =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+            });
+            services.AddRazorPages();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -95,17 +112,18 @@ namespace ComplaintLoggingSystem
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
+            app.UseRouting();
             app.UseAuthentication();
-
+            app.UseAuthorization();
             AppContext.Configure(app.ApplicationServices
                .GetRequiredService<IHttpContextAccessor>());
 
-            app.UseMvc(routes =>
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
             });
         }
     }
